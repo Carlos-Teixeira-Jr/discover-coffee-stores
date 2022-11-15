@@ -4,13 +4,17 @@ import styles from '../styles/Home.module.css';
 import Banner from "../components/banner";
 import Card from "../components/card";
 import coffeeStoresData from "../data/coffee-stores.json";
+import {fetchCoffeeStores} from "../lib/coffee-stores";
 
 //Função que estabelece que esses dados serão pré-renderizados no servidor;
 export async function getStaticProps(context){
+
+  const coffeeStores = await fetchCoffeeStores();
+
   return {
     //Isso faz com que "props" receba como valor o array de objetos "coffeeStores" que contém a lista de coffe shops que serão mostradas na Home page;
     props: {
-      coffeeStores: coffeeStoresData,
+      coffeeStores,
     },
   }
 }
@@ -45,10 +49,10 @@ export default function Home(props) {
               {props.coffeeStores.map((coffeeStore) => {
                 return (
                   <Card
-                    key={coffeeStore.id}
+                    key={coffeeStore.fsq_id}
                     name={coffeeStore.name}
-                    imgUrl={coffeeStore.imgUrl}
-                    href={`/coffee-store/${coffeeStore.id}`}
+                    imgUrl={coffeeStore.imgUrl || "https://images.unsplash.com/photo-1504753793650-d4a2b783c15e?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=2000&q=80"}
+                    href={`/coffee-store/${coffeeStore.fsq_id}`}
                   />
                 );
               })}
