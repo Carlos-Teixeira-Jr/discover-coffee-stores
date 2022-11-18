@@ -5,7 +5,8 @@ import Banner from "../components/banner";
 import Card from "../components/card";
 import coffeeStoresData from "../data/coffee-stores.json";
 import {fetchCoffeeStores} from "../lib/coffee-stores";
-import useTrackLocation from '../hooks/use-track-locations';
+import useTrackLocation from "../hooks/use-track-location"
+import { useEffect, useState } from 'react';
 
 //Função que estabelece que esses dados serão pré-renderizados no servidor;
 export async function getStaticProps(context){
@@ -24,11 +25,39 @@ export async function getStaticProps(context){
 //Cada coffee store está sendo disponibilizada para a home page por meio das "props";
 export default function Home(props) {
 
-  const {handleTracklLocation} = useTrackLocation;
+  //Constante que permite usar o Hook que usa a API GeoLocation;
+  const {handleTrackLocation, latLong, locationErrorMsg, isFindingLocation} = 
+    useTrackLocation();
+
+  const [coffeeStores, setCoffeeStores] = useState("");
+  const [coffeeStoresError, setCoffeeStoresError] = useState(null);
+
+  useEffect(() => {
+    async function setCoffeeStoresByLocation() {
+      if (latLong) {
+        try {
+          const fetchedCoffeeStores = await fetchCoffeeStores(latLong, 30);
+          console.log({ fetchedCoffeeStores });
+          setCoffeeStores(fetchedCoffeeStores);
+          //set coffee stores
+        } catch (error) {
+          //set error
+          console.log({ error });
+          setCoffeeStoresError(error.message)
+        }
+      }
+    }
+    setCoffeeStoresByLocation();
+  }, [latLong]);
   
+  //Evento que pega as coordenadas geográficas do usuário para encontrar coffee shops próximos a ele;
   const handleOnBannerBtnClick = () => {
+
     console.log("hi banner button");
-    handleTracklLocation();
+    handleTrackLocation();
+  
+
+    console.log({latLong, locationErrorMsg});
   }
   
   return (
@@ -40,17 +69,20 @@ export default function Home(props) {
       </Head>
     
       <main className={styles.main}>
-        <Banner buttonText="View stores nearby" handleOnClick={handleOnBannerBtnClick}/>
+        <Banner buttonText={isFindingLocation ? "Locating..." : "View stores nearby"} handleOnClick={handleOnBannerBtnClick}/>
+
+        {locationErrorMsg && <p>Something went wrong:{locationErrorMsg}</p>}
+        {coffeeStoresError && <p>Something went wrong:{coffeeStoresError}</p>}
         
         <div className={styles.heroImage}>
           <Image src="/static/hero-image.png" width={700} height={400} alt='A picture of a girl drinking coffee'/>
         </div>
-    
-        {props.coffeeStores.length > 0 && (
-          <>
-            <h2 className={styles.heading2}>Toronto Coffee Stores</h2>
+
+        {coffeeStores.length > 0 && (
+          <div className={styles.sectionWrapper}>
+            <h2 className={styles.heading2}>Stores near me</h2>
             <div className={styles.cardLayout}>
-              {props.coffeeStores.map((coffeeStore) => {
+              {coffeeStores.map((coffeeStore) => {
                 return (
                   <Card
                     key={coffeeStore.id}
@@ -62,8 +94,29 @@ export default function Home(props) {
                 );
               })}
             </div>
-          </>
+          </div>
         )}
+
+        <div className={styles.sectionWrapper}>
+          {props.coffeeStores.length > 0 && (
+            <>
+              <h2 className={styles.heading2}>Toronto Coffee Stores</h2>
+              <div className={styles.cardLayout}>
+                {props.coffeeStores.map((coffeeStore) => {
+                  return (
+                    <Card
+                      key={coffeeStore.id}
+                      name={coffeeStore.name}
+                      imgUrl={coffeeStore.imgUrl || "https://images.unsplash.com/photo-1504753793650-d4a2b783c15e?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=2000&q=80"}
+                      href={`/coffee-store/${coffeeStore.id}`}
+                      className={styles.card}
+                    />
+                  );
+                })}
+              </div>
+            </>
+          )}
+        </div>
       </main>
     </div>
   );
