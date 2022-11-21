@@ -65,18 +65,52 @@ const CoffeeStore = (initialProps) => {
     }
   } = useContext(StoreContext);
 
+  const handleCreateCoffeeStore = async (coffeeStore) => {
+    try {
+
+      const {name, voting, imgUrl, locality, address, id} = coffeeStore;
+
+      const response = await fetch("/api/createCoffeeStore", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name, 
+          voting: 0, 
+          imgUrl, 
+          locality: locality || "", 
+          address: address || "", 
+          id
+        })
+      });
+
+      const dbCoffeeStore = response.json();
+      console.log({dbCoffeeStore});
+    } catch (err) {
+      console.log("Error creating coffee store", err)
+    }
+  }
+
   useEffect(() => {
     if(isEmpty(initialProps.coffeeStore)){
       if(coffeeStores.length > 0) {
-        const findCoffeStoreById = coffeeStores.find(
+        const coffeStoreFromContext = coffeeStores.find(
           (coffeeStore) => {
             return coffeeStore.id.toString() === id;//dynamic id
           }
         );
-        setCoffeeStore(findCoffeStoreById);
+
+        if(coffeStoreFromContext){
+          setCoffeeStore(coffeStoreFromContext);
+          handleCreateCoffeeStore(coffeStoreFromContext);
+        }
       }
+    }else{
+      //SSG
+      handleCreateCoffeeStore(initialProps.coffeeStore);
     }
-  }, [id]);
+  }, [id, initialProps.coffeeStore]);
 
   //Variáveis em formato destructuring, precisam ser declaradas após a checagem de FALLBACK pois antes disso a página pode ainda não ter sido gerada;
   const {name,address,locality, imgUrl} = coffeeStore;
