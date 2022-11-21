@@ -6,6 +6,9 @@ import styles from "../../styles/coffee-store.module.css";
 import Image from "next/image";
 import cls from "classnames";
 import { fetchCoffeeStores } from "../../lib/coffee-stores";
+import { useContext, useEffect, useState } from "react";
+import { StoreContext } from "../../store/store-context";
+import { isEmpty } from "../../utils/";
 
 //Aqui pegamos o id de cada coffe store e atribuímos eles ao id da página dinâmica;
 export async function getStaticProps(staticProps){
@@ -42,20 +45,41 @@ export async function getStaticPaths() {
 }
 
 //Para que estapágina e rota sejam devidamente criadas é precisa que tenha a síntaxe de um COMPONENTE REACT e que seja exportada por default;
-const CoffeeStore = (props) => {
+const CoffeeStore = (initialProps) => {
 
   //O Router capta informações da rota em um objeto/ Aqui será usado para capturar o id da página dinâmica // Só funciona no lado do Client;
   const router = useRouter();
-
-
 
   //Estabelece uma mensagem caso a página seja criada em FALLBACK TRUE...
   if(router.isFallback){
     return <div>Loading...</div>;
   }
 
+  const id = router.query.id;
+
+  const [coffeeStore, setCoffeeStore] = useState(initialProps.coffeeStore)
+
+  const {
+    state: {
+      coffeeStores
+    }
+  } = useContext(StoreContext);
+
+  useEffect(() => {
+    if(isEmpty(initialProps.coffeeStore)){
+      if(coffeeStores.length > 0) {
+        const findCoffeStoreById = coffeeStores.find(
+          (coffeeStore) => {
+            return coffeeStore.id.toString() === id;//dynamic id
+          }
+        );
+        setCoffeeStore(findCoffeStoreById);
+      }
+    }
+  }, [id]);
+
   //Variáveis em formato destructuring, precisam ser declaradas após a checagem de FALLBACK pois antes disso a página pode ainda não ter sido gerada;
-  const {name,address,locality, imgUrl} = props.coffeeStore;
+  const {name,address,locality, imgUrl} = coffeeStore;
 
   const handleUpvoteButton = () => {
     console.log("handle Upvite")
