@@ -122,6 +122,7 @@ const CoffeeStore = (initialProps) => {
 
   useEffect(() => {
     if(data && data.length > 0) {
+
       setCoffeeStore(data[0]);
       setVotingCount(data[0].voting)
     }
