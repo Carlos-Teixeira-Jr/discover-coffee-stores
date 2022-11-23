@@ -8,7 +8,9 @@ import cls from "classnames";
 import { fetchCoffeeStores } from "../../lib/coffee-stores";
 import { useContext, useEffect, useState } from "react";
 import { StoreContext } from "../../store/store-context";
-import { isEmpty } from "../../utils/";
+import useSWR from "swr";
+import { isEmpty, fetcher } from "../../utils/";
+
 
 //Aqui pegamos o id de cada coffe store e atribuímos eles ao id da página dinâmica;
 export async function getStaticProps(staticProps){
@@ -86,7 +88,6 @@ const CoffeeStore = (initialProps) => {
       });
 
       const dbCoffeeStore = response.json();
-      console.log({dbCoffeeStore});
     } catch (err) {
       console.log("Error creating coffee store", err)
     }
@@ -115,12 +116,45 @@ const CoffeeStore = (initialProps) => {
   //Variáveis em formato destructuring, precisam ser declaradas após a checagem de FALLBACK pois antes disso a página pode ainda não ter sido gerada;
   const {name,address,locality, imgUrl} = coffeeStore;
 
-  const [votingCount, setVotingCount] = useState(1);
+  const [votingCount, setVotingCount] = useState(0);
 
-  const handleUpvoteButton = () => {
-    console.log("handle Upvite")
-    let count = votingCount + 1;
-    setVotingCount(count)
+  const {data, error} = useSWR(`/api/getCoffeeStoreById?id=${id}`, fetcher);
+
+  useEffect(() => {
+    if(data && data.length > 0) {
+      setCoffeeStore(data[0]);
+      setVotingCount(data[0].voting)
+    }
+  },[data])
+
+  const handleUpvoteButton = async () => {
+
+    try {
+
+      const response = await fetch("/api/favouriteCoffeeStoreById", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id,
+        })
+      });
+
+      const dbCoffeeStore = await response.json();
+
+      if(dbCoffeeStore && dbCoffeeStore.length > 0){
+        let count = votingCount + 1;
+        setVotingCount(count);
+      }
+    } catch (err) {
+      console.log("Error upvoting the coffee store", err)
+    }
+    
+  }
+
+  if(error) {
+    return <div>Something went wrong retrieving coffee store page</div>;
   }
 
   //O que há dentro das chaves é uma concatenação do texto simples com i id gerado dinamicamente na URL desta página;

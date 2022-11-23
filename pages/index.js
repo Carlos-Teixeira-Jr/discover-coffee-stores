@@ -67,11 +67,8 @@ export default function Home(props) {
   //Evento que pega as coordenadas geográficas do usuário para encontrar coffee shops próximos a ele;
   const handleOnBannerBtnClick = () => {
 
-    console.log("hi banner button");
     handleTrackLocation();
-  
 
-    console.log({latLong, locationErrorMsg});
   }
   
   return (
@@ -89,7 +86,7 @@ export default function Home(props) {
         {coffeeStoresError && <p>Something went wrong:{coffeeStoresError}</p>}
         
         <div className={styles.heroImage}>
-          <Image src="/static/hero-image.png" width={700} height={400} alt='A picture of a girl drinking coffee'/>
+          <Image src="/static/hero-image.png" width={700} height={400}/>
         </div>
 
         {coffeeStores.length > 0 && (
