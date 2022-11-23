@@ -1,6 +1,6 @@
 //API que utiliza o AIRTABLE para captar dados de uma página renderizada no servidor e servir as páginas dinâmicas que forem renderizadas no lado do cliente;
 
-import { getMinifiedRecords, table } from "../../lib/airtable";
+import { getMinifiedRecords, table, findRecordByFilter } from "../../lib/airtable";
 
 //Essa função busca o dado no DB pela chave ID, se ele já constar no DB então os dados não são guardados, se não houver os dados são salvos como uma nova entrada;
 const createCoffeeStore = async (req, res) => {
@@ -12,16 +12,12 @@ const createCoffeeStore = async (req, res) => {
     try{
       if(id){
         //find a record
-        const findCoffeeStoreRecords = await table.select({
-          filterByFormula: `id="${id}"`,
-        }).firstPage();
+        const records = await findRecordByFilter(id);
 
-        if(findCoffeeStoreRecords.length !== 0){
-          const records = getMinifiedRecords(findCoffeeStoreRecords)
+        if(records.length !== 0){
           res.json(records);
         }else{
           //create a record
-
           if(name){
             const createRecords = await table.create([
               {

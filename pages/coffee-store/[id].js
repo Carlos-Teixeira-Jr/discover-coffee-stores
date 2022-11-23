@@ -115,8 +115,12 @@ const CoffeeStore = (initialProps) => {
   //Variáveis em formato destructuring, precisam ser declaradas após a checagem de FALLBACK pois antes disso a página pode ainda não ter sido gerada;
   const {name,address,locality, imgUrl} = coffeeStore;
 
+  const [votingCount, setVotingCount] = useState(1);
+
   const handleUpvoteButton = () => {
     console.log("handle Upvite")
+    let count = votingCount + 1;
+    setVotingCount(count)
   }
 
   //O que há dentro das chaves é uma concatenação do texto simples com i id gerado dinamicamente na URL desta página;
@@ -163,7 +167,7 @@ const CoffeeStore = (initialProps) => {
           
           <div className={styles.iconWrapper}>
             <Image src="/static/icons/star.svg" width={24} height="24"/>
-            <p className={styles.text}>666</p>
+            <p className={styles.text}>{votingCount}</p>
           </div>
           <button className={styles.upvoteButton} onClick={handleUpvoteButton}>
             Up vote!
